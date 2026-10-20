@@ -1,11 +1,61 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "arrival-pack",
+    "title": "Reception arrival pack",
+    "for_each": "select id,name from sites order by code",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "Expected visitors",
+        "sql": "select v.code,v.visitor_name,v.company,h.name as host,v.purpose,v.expected_at,v.status from visits v left join hosts h on h.id=v.host_id where v.site_id=$1 and v.status in ('pending','approved') and v.expected_at<now()+interval '7 days' order by v.expected_at"
+      },
+      {
+        "title": "Site rules",
+        "sql": "select notice_version,induction_version,max_visit_hours,retention_days from sites where id=$1",
+        "note": "Retention days and maximum visit length are operator policy, not statutory periods."
+      }
+    ]
+  },
+  {
+    "name": "visitor-pass",
+    "title": "Visitor pass",
+    "for_each": "select id,code from visits where status='onsite' order by code",
+    "file": "code",
+    "sections": [
+      {
+        "title": "Visit details",
+        "sql": "select code,visitor_name,company,site,host,expected_end from v_visit_register where id=$1",
+        "note": "Reception record only. This pass does not grant physical access."
+      }
+    ]
+  },
+  {
+    "name": "retention-review",
+    "title": "Visitor retention review",
+    "for_each": "select id,name from sites order by code",
+    "file": "name",
+    "sections": [
+      {
+        "title": "Records requiring a decision",
+        "sql": "select code,visitor_name,status,retention_due,hold_reason from visits where site_id=$1 and retention_due<=current_date and status<>'redacted' order by retention_due",
+        "note": "Review lawful purpose and holds before redaction. Include exports, drafts and backups in disposal."
+      }
+    ]
+  },
+  {
+    "name": "visit-history",
+    "title": "Visit record and decisions",
+    "for_each": "select id,code from visits where status<>'redacted' order by code",
+    "file": "code",
+    "sections": [
+      {
+        "title": "Visit",
+        "sql": "select code,site,visitor_name,host,purpose,status,checked_in_at,checked_out_at from v_visit_register where id=$1"
+      },
+      {
+        "title": "Recorded decisions",
+        "sql": "select event,actor,created_at from visit_events where visit_id=$1 order by created_at,id"
+      }
     ]
   }
 ]

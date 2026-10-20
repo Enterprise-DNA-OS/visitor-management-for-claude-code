@@ -38,78 +38,123 @@
 
 ## What is this
 
-Visitor Management for Claude Code does the job you pay Envoy Visitors for, as a Postgres database and a set of agent commands. There is no web front end. You open the folder in [Claude Code](https://claude.com/claude-code) (or Codex, OpenCode, Cursor: see `AGENTS.md`) and ask for what you want in plain language. It runs the right query, and it can answer questions the Envoy Visitors dashboard cannot.
+A staffed reception desk in a database you own: expected visitors, host approvals, arrival and departure records, notice and induction evidence, retention decisions and local paperwork. The operator talks to Claude Code, Codex, OpenCode or Cursor. There is no unattended kiosk or access-control integration in the free base.
 
-<!-- TODO(author): the annual bill. One sentence: what a 10 to 50 person business typically pays Envoy Visitors per year, all in, with a source. -->
-
-Want the same thing with a web front end, or built on a different stack? That is a customisation, and it is exactly what Enterprise DNA does: [book a call](https://enterprisedna.co/omni/book/?utm_source=github&utm_medium=readme&utm_campaign=envoy-visitors).
-
-<!-- TODO(author): two or three sentences on what this specific product covers and who it is for. -->
-
-## Why no front end
-
-- The front end was only ever there because the database was hard to talk to. That is no longer true.
-- Your data sits in plain Postgres tables you own. Any tool can read them. No export, no lock-in.
-- No seats, no tiers, no add-ons. Read [docs/why-no-front-end.md](docs/why-no-front-end.md) for the honest trade-offs too.
+Envoy Visitors Premium lists at US$362 per location per month, billed annually. Five locations at that rate is US$21,720 a year before taxes or discounts. This is a list-price scenario, not a verified customer invoice. [Vendor pricing](https://envoy.com/pricing), checked 20 October 2026. [Envoy confirms billing in USD](https://envoy.help/en/articles/3330114-what-countries-is-envoy-available-in-can-we-purchase-your-hardware-internationally).
 
 ## Quick start
-
-Sixty seconds, no database install (an embedded Postgres runs inside Node):
 
 ```bash
 git clone https://github.com/Enterprise-DNA-OS/visitor-management-for-claude-code.git
 cd visitor-management-for-claude-code
 npm install
+npm test
 npm run demo
+npm run view
+npm run docs
 ```
 
-Then open the folder in Claude Code and type a slash command. <!-- TODO(author): name the first command to try. -->
-
-### Use it with your own Postgres or Supabase
-
-Copy `.env.example` to `.env`, set `DATABASE_URL`, then `npm run migrate`. Same commands, shared data, no per-seat fee.
+Node 20 or later. Embedded PGlite runs without a database server. For PostgreSQL set DATABASE_URL before npm run migrate. Use a fresh database and imports for business records; npm run demo creates fictional data. DATA_DIR selects the embedded data directory. Keep credentials out of the repository.
 
 ## The commands
 
-<!-- TODO(author): a table of the slash commands in .claude/commands and what each one does. -->
+30 CLI commands and 34 slash recipes. Every CLI command has human output and --json. See [complete syntax](docs/cli.md).
 
-| Command | What it does |
-|---|---|
-| `/...` | ... |
+- /sites: List sites and local policies.
+- /hosts: List site hosts and availability.
+- /visits: List visit history.
+- /visit: Read a visit and event history.
+- /arrivals: Prepare the next seven days of reception arrivals.
+- /onsite: Read the current reception register.
+- /attention: Reconcile overdue departures and missed arrivals.
+- /approvals: Review visits awaiting a host decision.
+- /retention-review: Review records due for a retention decision.
+- /compliance: Review collection notice, induction and retention evidence.
+- /activity: Read visit events.
+- /insights: Answer ten cross-record questions.
+- /add-site: Add a site and its policies.
+- /add-host: Add a host at a site.
+- /set-host: Mark a host available or unavailable.
+- /invite: Register an expected visitor.
+- /approve: Record a host approval.
+- /deny: Record a declined visit.
+- /acknowledge: Record evidence that the current notice and induction were provided.
+- /check-in: Record arrival after approval and evidence checks.
+- /check-out: Record a confirmed departure.
+- /cancel: Cancel an expected visit.
+- /hold: Place a retention hold.
+- /release-hold: Release a reviewed retention hold.
+- /redact: Redact identifying visit fields after a retention decision.
+- /log: Record a reception follow-up event.
+- /import: Import historical Envoy visitor records.
+- /export: Export all business records locally.
+- /weekly-review: Draft the weekly reception review.
+- /draft-host: Draft a host review note without sending.
+- /customise: add a field, change a policy or rename a stage.
+- /new-view: add a read-only dashboard.
+- /documents: render branded paperwork.
+- /view: render read-only dashboards.
+
+## Five weekly rituals
+
+Prepare arrivals, clear host approvals, reconcile overdue departures, review notice and induction evidence, and make retention decisions. /weekly-review drafts the reception handover from arrivals, attention and compliance. Nothing sends.
+
+## Ten questions to ask your records
+
+Run /insights. These are implemented cross-record queries, not an unsupported claim that Envoy cannot build an equivalent report.
+
+1. Which hosts have the most overdue departures?
+2. Which sites have visitors without current notice evidence?
+3. Which companies have visits across several sites?
+4. Which hosts have arrivals waiting for approval?
+5. Which historical records have passed our retention date?
+6. Which visitors arrived without the current induction record?
+7. Which expected visitors have an unavailable host?
+8. How long do completed visits last at each site?
+9. Which held records need a retention decision?
+10. Which sites need the most work before the next reception handover?
+
+## Your first hour: ten things to ask for
+
+1. Put our name and logo on the paperwork.
+2. Add our sites with the right timezones and policies.
+3. Bring in our Envoy export with a dry run first.
+4. Show historical visits separately from people here today.
+5. List tomorrow's expected visitors by host.
+6. Record this host's approval and the visitor's induction evidence.
+7. Show which recorded departures need checking with staff.
+8. Draft the weekly reception handover.
+9. Add our visitor type field with /customise.
+10. Add a site-specific review with /new-view.
 
 ## Instead of envoy-visitors
 
-<!-- TODO(author): how to bring data across from Envoy Visitors; link docs/replace-envoy-visitors.md -->
+Export the visitor log as CSV and run one import per location. The import is atomic, repeatable and historical only. Retained source visit IDs are hashed; signed documents, photos and custom fields need a separate migration plan. [Switching guide](docs/replace-envoy-visitors.md).
 
-## Architecture
+## Evidence and retention
 
-```
-visitor-management-for-claude-code/
-  CLAUDE.md                 how the operator wants this run (routing table + house rules)
-  AGENTS.md                 the same, for Codex / OpenCode / Cursor / Gemini CLI
-  .claude/commands/         the slash commands
-  scripts/                  the CLI the commands drive
-  scripts/lib/db.mjs        one adapter: DATABASE_URL (pg) or embedded PGlite
-  supabase/migrations/      plain SQL schema
-  supabase/seed.sql         demo data
-  docs/                     the thesis and the migration guide
-```
+Check-in requires an approved visit, an active host and recorded evidence of the site's current notice and induction. The operator supplies a protected evidence reference. This is a record of an action, not an electronic signature service or proof that an induction was understood. Host labels and actor labels are not authenticated identities.
 
-## Built for coding agents
+/compliance finds evidence gaps and records past the site's chosen retention date. The demo's 90 days is a local example policy, not a legal period. A hold or an onsite status blocks redaction. The retained event log records action codes and operator references. Local reports, exports, drafts and backups need their own disposal process. [Rules and sources](docs/compliance.md).
 
-The database, CLI and command recipes work with Claude Code, Codex, OpenCode or Cursor. Ask your coding agent for a new command and have it implement and test the change against the same records.
+## Paperwork and dashboards
 
-## Contributing
+brand.json sets the business name, logo and colours. npm run docs creates arrival packs, visitor passes, visit histories and retention review sheets. npm run view creates the reception week, onsite register and evidence review. Files stay local. A pass does not grant physical access. Onsite records are a snapshot and are not an emergency accountability system.
 
-Issues and pull requests are welcome. Keep the shape: plain SQL, a small CLI, a slash command per recurring job, no front end.
+## Why no front end
+
+A reception operator can register a visit, record a decision and prepare the handover through the assistant. Unattended sign-in, mobile check-in, badge hardware and door integrations need a custom implementation. [The full boundary](docs/why-no-front-end.md).
+
+## Verification
+
+npm test uses a temporary database, covers every CLI operation and checks import rollback, repeated imports, dates, ambiguous names, arrival gates, redaction holds and generated documents. CI runs on Node 20 and 22 under Windows and Linux, plus PostgreSQL 16. CI results must be checked separately from local test output.
 
 ## Want it installed and run for you?
 
-Enterprise DNA installs Visitor Management for Claude Code for your business, migrates your Envoy Visitors data, connects it to the rest of your tools, and runs it for you as part of **Omni**, our managed Command Center. One setup fee, then a monthly retainer.
+Omni by Enterprise DNA brings your history across, builds your fields, approval rules and reception screens, and runs your version. A different stack or hardware integration can be scoped with it. One setup fee, then a retainer.
 
-- Book a call: [enterprisedna.co/omni/book](https://enterprisedna.co/omni/book/?offer=replace-software&utm_source=github&utm_medium=readme&utm_campaign=envoy-visitors)
-- Read more: [enterprisedna.co/omni/instead-of/envoy-visitors](https://enterprisedna.co/omni/instead-of/envoy-visitors?utm_source=github&utm_medium=readme&utm_campaign=envoy-visitors)
+[Book a call](https://enterprisedna.co/omni/book/?offer=replace-software&utm_source=github&utm_medium=readme&utm_campaign=envoy-visitors).
 
 ## License
 
-MIT. Copyright (c) 2026 Enterprise DNA.
+MIT. Copyright (c) 2026 Enterprise DNA. Envoy is its owner's trademark. This independent project is not affiliated with Envoy.

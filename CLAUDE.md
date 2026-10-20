@@ -1,43 +1,56 @@
-# Visitor Management for Claude Code: operating instructions
-
-This file is the brain. Claude Code reads it at the start of every session. It says who this is for, how work gets done, and the one right way to do each recurring job.
+# Visitor Management for Claude Code
 
 ## Who this is for
 
-- **Business:** [YOUR BUSINESS]
-- **Operator:** [YOUR NAME], [your role]
-- **What matters most:** [the one or two outcomes you care about]
+A staffed reception team managing expected visitors, host decisions, arrival and departure records across sites. The demo business is fictional Harbour Instruments. Replace its name and colours in brand.json before using real records.
 
-Fill this in once. A worker with context knows. A worker without it guesses.
+## Rules
 
-## How to work
+Read the records with the CLI before answering. Never infer a visitor is physically present from an old import. Never invent host approval, notice evidence or induction completion. Actor labels are not authentication. Use operator references and keep visitor personal details out of actor names, hold reasons and evidence references.
 
-1. **Take a brief, not a script.** The operator describes the outcome. You run the right command and present the answer.
-2. **Read before you write.** Before drafting anything about a record, read its full history first.
-3. **Plain language.** Short sentences. No filler. Numbers in tables.
-4. **Silent success, loud problems.** No play-by-play. Say what broke and what you did about it.
-5. **Stop at the line.** Anything that sends, deletes, or faces a customer waits for a yes in this session.
+Do not send messages, publish a page, grant physical access or make payments. Drafts stay local. Before redaction or releasing a hold, show the exact record and obtain explicit approval in this session. Include generated copies and backups in the disposal plan. Emergency attendance follows the site emergency plan, not this database alone.
 
-## Routing table: one right way for each recurring job
+## Routes
 
-| When the operator asks for... | Use this |
+| Job | Command |
 |---|---|
-| <!-- TODO(author): one row per slash command --> | `/...` |
+| List sites and local policies | /sites |
+| List site hosts and availability | /hosts |
+| List visit history | /visits |
+| Read a visit and event history | /visit |
+| Prepare the next seven days of reception arrivals | /arrivals |
+| Read the current reception register | /onsite |
+| Reconcile overdue departures and missed arrivals | /attention |
+| Review visits awaiting a host decision | /approvals |
+| Review records due for a retention decision | /retention-review |
+| Review collection notice, induction and retention evidence | /compliance |
+| Read visit events | /activity |
+| Answer ten cross-record questions | /insights |
+| Add a site and its policies | /add-site |
+| Add a host at a site | /add-host |
+| Mark a host available or unavailable | /set-host |
+| Register an expected visitor | /invite |
+| Record a host approval | /approve |
+| Record a declined visit | /deny |
+| Record evidence that the current notice and induction were provided | /acknowledge |
+| Record arrival after approval and evidence checks | /check-in |
+| Record a confirmed departure | /check-out |
+| Cancel an expected visit | /cancel |
+| Place a retention hold | /hold |
+| Release a reviewed retention hold | /release-hold |
+| Redact identifying visit fields after a retention decision | /redact |
+| Record a reception follow-up event | /log |
+| Import historical Envoy visitor records | /import |
+| Export all business records locally | /export |
+| Draft the weekly reception review | /weekly-review |
+| Draft a host review note without sending | /draft-host |
+| Change a field or rule | /customise |
+| Add a read-only view | /new-view |
+| Render paperwork | /documents |
+| Render dashboards | /view |
 
-If an ask fits nothing here, run the CLI directly (`npm run <cli> -- --help`) and then propose a new command for it.
+## Development
 
-## Hard rules
+One CLI: scripts/visitors.mjs. Database: scripts/lib/db.mjs, embedded PGlite unless DATABASE_URL is set. New migrations go in supabase/migrations. Read docs/compliance.md and docs/replace-envoy-visitors.md. Run npm test after changes, then npm run demo, npm run docs and npm run view. Never seed a production database. All writes use parameterised queries; visit decisions run in transactions.
 
-- Never send email or messages from here. Draft to `drafts/`, a person sends.
-- Never delete records without an explicit yes in this session. Prefer marking closed or archived.
-- Never invent a record. If a name is ambiguous, list the candidates and ask.
-- The database is the source of truth. If the answer is not in it, say so.
-
-## Where things live
-
-- `scripts/` the CLI. `scripts/lib/db.mjs` picks `DATABASE_URL` (Postgres, Supabase) or the embedded database in `.data/`.
-- `supabase/migrations/` the schema, plain SQL. `npm run migrate` applies it.
-- `.claude/commands/` the slash commands. Add one every time the same ask comes twice.
-- `docs/` the thesis and the guide for moving off Envoy Visitors.
-
-Built by Enterprise DNA. Installed and run for you as part of Omni: https://enterprisedna.co/omni/instead-of/envoy-visitors
+Built and operated through Omni by Enterprise DNA.

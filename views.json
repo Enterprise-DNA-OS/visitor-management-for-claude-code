@@ -1,13 +1,41 @@
 [
   {
-    "name": "week",
-    "title": "This week",
-    "subtitle": "Visitor Management for Claude Code: what needs attention, rendered by npm run view",
+    "name": "reception-week",
+    "title": "Reception week",
+    "subtitle": "Fictional demo records. Local records require staff reconciliation.",
     "sections": [
       {
+        "title": "Expected arrivals",
+        "sql": "select code,site,visitor_name,host,expected_at,status from v_arrivals order by expected_at"
+      },
+      {
         "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "sql": "select * from v_attention order by site,code"
+      }
+    ]
+  },
+  {
+    "name": "onsite",
+    "title": "Visitors recorded onsite",
+    "subtitle": "A point-in-time reception register, not an emergency accountability system.",
+    "sections": [
+      {
+        "title": "Recorded onsite",
+        "sql": "select * from v_onsite order by site,checked_in_at"
+      }
+    ]
+  },
+  {
+    "name": "retention",
+    "title": "Retention and evidence review",
+    "sections": [
+      {
+        "title": "Retention decisions",
+        "sql": "select * from v_retention order by retention_due"
+      },
+      {
+        "title": "Evidence gaps",
+        "sql": "select * from v_compliance order by site,code,rule"
       }
     ]
   }
